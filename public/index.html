@@ -410,13 +410,13 @@ var
                 <div class="flex">
                     <div class="flex-4">
                             <a href="{{path}}" data-imagelightbox="a">
-                                <img src="{{path}}" id="lol" alt="">
+                                <img src="{{path}}" id="{{msgid}}" alt="">
                             </a>
                     </div>
                     <div class="flex-8">
                         <h3 class="bold"> Logged at {{time}}</h3>
                         <br>
-                        <p>
+                        <p id="{{msgid}}">
                             {{data}}
                         </p>
                         <br>
@@ -429,24 +429,7 @@ var
             </div>
     </script>
 
-    <script type="text/template" id="template2">
-        <div class="card shadow">
-                <div class="flex">
-                    <div class="flex-12">
-                        <h3 class="bold"> Logged at {{time}}</h3>
-                        <br>
-                        <p>
-                            {{data}}
-                        </p>
-                        <br>
-                        <p style="text-align: right;">
-                           - {{from}}
-                        </p>
-                    </div>
-                        
-                </div>
-            </div>
-    </script>
+  
     <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-firestore.js"></script>
 
@@ -482,10 +465,8 @@ window.onclick = function(event) {
   }
 }
 
-        var temp2=$('#template2').html();
         var temp1=$('#template1').html();
         console.log(temp1);
-        console.log(temp2);
 
       // Your web app's Firebase configuration
       var firebaseConfig = {
@@ -503,32 +484,75 @@ window.onclick = function(event) {
       firebase.analytics();
 
 function init(){
+	var payloader={};
     firebase.firestore().collection("uploads").onSnapshot(function(querySnapshot) {
         var payloads = [];
         querySnapshot.forEach(function(doc) {
             payloads.push(doc.data());
         });
-        var str1=temp1;
-        var str2=temp2;
+		var str1=temp1;
+		console.log(payloads)
         for(data of payloads){
+			console.log(data);
            if(data.type=="text"){
+			   console.log(data.data+"############");
+			   console.log(str1);
             var time=""+new Date(data.time);
            
-              str2=str2.replace(/{{from}}/g,data.from);
-               str2=str2.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
-               str2=str2.replace(/{{data}}/g,data.data);
-               document.querySelector("#aud").play();
-               $('#parent').append(str2);
-               str2=temp2;
+              str1=str1.replace(/{{from}}/g,data.from);
+               str1=str1.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
+			   str1=str1.replace(/{{data}}/g,data.data);
+				str1=str1.replace(/{{msgid}}/g,data.msgid)  
+				console.log(payloader);
+			   console.log("========")
+			   if(data.msgid in payloader){
+				   if(payloader[data.msgid].type=="image"){
+					   console.log(document.querySelector("#"+data.msgid));
+					   document.querySelector("p#"+data.msgid).innerHTML=data.data;
+					   document.querySelector("#aud").play();
+					   str1=temp1;
+					   continue;
+				   }
+			   }else{
+				payloader[data.msgid]={
+					type:"text"
+				}
+				console.log(payloader);
+				console.log("jdkfjhdfh");
+				document.querySelector("#aud").play();
+				$('#parent').append(str1);
+               str1=temp1;
+			   }
+           
 
            }else{
-            var time=""+new Date(data.time);
+			var time=""+new Date(data.time);
+			  console.log(data.data);
+			  console.log(str1);
                str1=str1.replace(/{{path}}/g,data.data);
                str1=str1.replace(/{{from}}/g,data.from);
-               str1=str1.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
-               document.querySelector("#aud").play();
-               $('#parent').append(str1);
-               str1=temp1;
+			   str1=str1.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
+			   str1=str1.replace(/{{msgid}}/g,data.msgid)  ;
+			   console.log(payloader);
+			   console.log("========")
+			   if(data.msgid in payloader){
+				if(payloader[data.msgid].type=="text"){
+					   document.querySelector("img#"+data.msgid).src=data.data;
+					   console.log("embedded image");
+					   document.querySelector("#aud").play();
+					   str1=temp1;
+					   continue;
+				   }
+			   }else{
+				payloader[data.msgid]={
+					type:"image"
+				}
+				console.log(payloader);
+				console.log("jdkfjhdfh");
+				document.querySelector("#aud").play();
+			   $('#parent').append(str1);
+			   str1=temp1;
+			   }
 
            }
         }

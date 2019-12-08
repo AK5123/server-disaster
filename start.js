@@ -65,11 +65,12 @@ app.post("/addMessage",async function(req,res){
     let data=req.body;
     let msgid=data.msgid.replace(/\..+/g,"") || "unidentified";
     let from=data.msgid.slice(10).replace(/\..+/g,"") || "unknown";
+    let mydata=data.data;
     await firebase.firestore().collection("uploads").doc().set({
        msgid,
        time:+ new Date(),
        from,
-       data,
+       data:mydata,
        type:"text"
     });
     console.log(req.body);
