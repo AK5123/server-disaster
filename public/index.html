@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Home</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <h3 class="bold white large-font">Disaster Monitor</h3>
+    <div id="particles-js" style="z-index: 0;"></div>
+    <div class="wrapper">
+            <div class="flex" style="z-index: 1;flex-wrap: wrap;" id="parent">
+                    <div class="card shadow">
+                        <div class="flex">
+                            <div class="flex-4">
+                                    <a href="https://upload.wikimedia.org/wikipedia/commons/7/7f/Emma_Watson_2013.jpg" data-imagelightbox="a" target="_blank">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7f/Emma_Watson_2013.jpg" id="lol" alt="">
+                                    </a>
+                            </div>
+                            <div class="flex-8">
+                                <h3 class="bold"> Logged Today at 5.35 am </h3>
+                                <br>
+                                <p>
+                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptates voluptatibus error esse sint veniam, reiciendis ipsum earum? Eveniet porro molestiae dicta atque commodi aspernatur dolorum doloribus esse! Odit, excepturi neque? 
+                                </p>
+                                <br>
+                                <p style="text-align: right;">
+                                   - Mohan
+                                </p>
+                            </div>
+                                
+                        </div>
+                    </div>
+                    
+                </div>
+
+    </div>
+    <audio controls id="aud"  style="display: none;">
+            <source src="when.mp3" type="audio/mpeg">
+            
+            </audio>
+            
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <p>Welcome to the Disaster portal</p>
+        </div>
+      
+      </div>
+  <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+  <script>
+/*
+	By Osvaldas Valutis, www.osvaldas.info
+	Available for use under the MIT License
+*/
+
+;( function( $, window, document, undefined )
+{
+	'use strict';
+
+	var cssTransitionSupport = function()
+		{
+			var s = document.body || document.documentElement, s = s.style;
+			if( s.WebkitTransition == '' ) return '-webkit-';
+			if( s.MozTransition == '' ) return '-moz-';
+			if( s.OTransition == '' ) return '-o-';
+			if( s.transition == '' ) return '';
+			return false;
+		},
+
+		isCssTransitionSupport = cssTransitionSupport() === false ? false : true,
+
+		cssTransitionTranslateX = function( element, positionX, speed )
+		{
+			var options = {}, prefix = cssTransitionSupport();
+			options[ prefix + 'transform' ]	 = 'translateX(' + positionX + ')';
+			options[ prefix + 'transition' ] = prefix + 'transform ' + speed + 's linear';
+			element.css( options );
+		},
+
+		hasTouch	= ( 'ontouchstart' in window ),
+		hasPointers = window.navigator.pointerEnabled || window.navigator.msPointerEnabled,
+		wasTouched	= function( event )
+		{
+			if( hasTouch )
+				return true;
+
+			if( !hasPointers || typeof event === 'undefined' || typeof event.pointerType === 'undefined' )
+				return false;
+
+			if( typeof event.MSPOINTER_TYPE_MOUSE !== 'undefined' )
+			{
+				if( event.MSPOINTER_TYPE_MOUSE != event.pointerType )
+					return true;
+			}
+			else
+				if( event.pointerType != 'mouse' )
+					return true;
+
+			return false;
+		};
+
+	$.fn.imageLightbox = function( options )
+	{
+		var options	   = $.extend(
+						 {
+						 	selector:		'id="imagelightbox"',
+						 	animationSpeed:	250,
+						 	preloadNext:	true,
+						 	enableKeyboard:	true,
+						 	quitOnEnd:		false,
+						 	quitOnImgClick: false,
+						 	quitOnDocClick: true,
+						 	onStart:		false,
+						 	onEnd:			false,
+						 	onLoadStart:	false,
+						 	onLoadEnd:		false
+						 },
+						 options ),
+
+			targets		= $([]),
+			target		= $(),
+			image		= $(),
+			imageWidth	= 0,
+			imageHeight = 0,
+			swipeDiff	= 0,
+			inProgress	= false,
+
+			setImage = function()
+			{
+				if( !image.length ) return true;
+
+				var screenWidth	 = $( window ).width() * 0.8,
+					screenHeight = $( window ).height() * 0.9,
+					tmpImage 	 = new Image();
+
+				tmpImage.src	= image.attr( 'src' );
+				tmpImage.onload = function()
+				{
+					imageWidth	 = tmpImage.width;
+					imageHeight	 = tmpImage.height;
+
+					if( imageWidth > screenWidth || imageHeight > screenHeight )
+					{
+						var ratio	 = imageWidth / imageHeight > screenWidth / screenHeight ? imageWidth / screenWidth : imageHeight / screenHeight;
+						imageWidth	/= ratio;
+						imageHeight	/= ratio;
+					}
+
+					image.css(
+					{
+						'width':  imageWidth + 'px',
+						'height': imageHeight + 'px',
+						'top':    ( $( window ).height() - imageHeight ) / 2 + 'px',
+						'left':   ( $( window ).width() - imageWidth ) / 2 + 'px'
+					});
+				};
+			},
+
+			loadImage = function( direction )
+			{
+				if( inProgress ) return false;
+
+				direction = typeof direction === 'undefined' ? false : direction == 'left' ? 1 : -1;
+
+				if( image.length )
+				{
+					if( direction !== false && ( targets.length < 2 || ( options.quitOnEnd === true && ( ( direction === -1 && targets.index( target ) == 0 ) || ( direction === 1 && targets.index( target ) == targets.length - 1 ) ) ) ) )
+					{
+						quitLightbox();
+						return false;
+					}
+					var params = { 'opacity': 0 };
+					if( isCssTransitionSupport ) cssTransitionTranslateX( image, ( 100 * direction ) - swipeDiff + 'px', options.animationSpeed / 1000 );
+					else params.left = parseInt( image.css( 'left' ) ) + 100 * direction + 'px';
+					image.animate( params, options.animationSpeed, function(){ removeImage(); });
+					swipeDiff = 0;
+				}
+
+				inProgress = true;
+				if( options.onLoadStart !== false ) options.onLoadStart();
+
+				setTimeout( function()
+				{
+					image = $( '<img ' + options.selector + ' />' )
+					.attr( 'src', target.attr( 'href' ) )
+					.on( 'load', function()
+					{
+						image.appendTo( 'body' );
+						setImage();
+
+						var params = { 'opacity': 1 };
+
+						image.css( 'opacity', 0 );
+						if( isCssTransitionSupport )
+						{
+							cssTransitionTranslateX( image, -100 * direction + 'px', 0 );
+							setTimeout( function(){ cssTransitionTranslateX( image, 0 + 'px', options.animationSpeed / 1000 ) }, 50 );
+						}
+						else
+						{
+							var imagePosLeft = parseInt( image.css( 'left' ) );
+							params.left = imagePosLeft + 'px';
+							image.css( 'left', imagePosLeft - 100 * direction + 'px' );
+						}
+
+						image.animate( params, options.animationSpeed, function()
+						{
+							inProgress = false;
+							if( options.onLoadEnd !== false ) options.onLoadEnd();
+						});
+						if( options.preloadNext )
+						{
+							var nextTarget = targets.eq( targets.index( target ) + 1 );
+							if( !nextTarget.length ) nextTarget = targets.eq( 0 );
+							$( '<img />' ).attr( 'src', nextTarget.attr( 'href' ) );
+						}
+					})
+					.on( 'error', function()
+					{
+						if( options.onLoadEnd !== false ) options.onLoadEnd();
+					});
+
+					var swipeStart	 = 0,
+						swipeEnd	 = 0,
+						imagePosLeft = 0;
+
+					image.on( hasPointers ? 'pointerup MSPointerUp' : 'click', function( e )
+					{
+						e.preventDefault();
+						if( options.quitOnImgClick )
+						{
+							quitLightbox();
+							return false;
+						}
+						if( wasTouched( e.originalEvent ) ) return true;
+					    var posX = ( e.pageX || e.originalEvent.pageX ) - e.target.offsetLeft;
+						target = targets.eq( targets.index( target ) - ( imageWidth / 2 > posX ? 1 : -1 ) );
+						if( !target.length ) target = targets.eq( imageWidth / 2 > posX ? targets.length : 0 );
+						loadImage( imageWidth / 2 > posX ? 'left' : 'right' );
+					})
+					.on( 'touchstart pointerdown MSPointerDown', function( e )
+					{
+						if( !wasTouched( e.originalEvent ) || options.quitOnImgClick ) return true;
+						if( isCssTransitionSupport ) imagePosLeft = parseInt( image.css( 'left' ) );
+						swipeStart = e.originalEvent.pageX || e.originalEvent.touches[ 0 ].pageX;
+					})
+					.on( 'touchmove pointermove MSPointerMove', function( e )
+					{
+						if( !wasTouched( e.originalEvent ) || options.quitOnImgClick ) return true;
+						e.preventDefault();
+						swipeEnd = e.originalEvent.pageX || e.originalEvent.touches[ 0 ].pageX;
+						swipeDiff = swipeStart - swipeEnd;
+						if( isCssTransitionSupport ) cssTransitionTranslateX( image, -swipeDiff + 'px', 0 );
+						else image.css( 'left', imagePosLeft - swipeDiff + 'px' );
+					})
+					.on( 'touchend touchcancel pointerup pointercancel MSPointerUp MSPointerCancel', function( e )
+					{
+						if( !wasTouched( e.originalEvent ) || options.quitOnImgClick ) return true;
+						if( Math.abs( swipeDiff ) > 50 )
+						{
+							target = targets.eq( targets.index( target ) - ( swipeDiff < 0 ? 1 : -1 ) );
+							if( !target.length ) target = targets.eq( swipeDiff < 0 ? targets.length : 0 );
+							loadImage( swipeDiff > 0 ? 'right' : 'left' );	
+						}
+						else
+						{
+							if( isCssTransitionSupport ) cssTransitionTranslateX( image, 0 + 'px', options.animationSpeed / 1000 );
+							else image.animate({ 'left': imagePosLeft + 'px' }, options.animationSpeed / 2 );
+						}
+					});
+
+				}, options.animationSpeed + 100 );
+			},
+
+			removeImage = function()
+			{
+				if( !image.length ) return false;
+				image.remove();
+				image = $();
+			},
+
+			quitLightbox = function()
+			{
+				if( !image.length ) return false;
+				image.animate({ 'opacity': 0 }, options.animationSpeed, function()
+				{
+					removeImage();
+					inProgress = false;
+					if( options.onEnd !== false ) options.onEnd();
+				});
+			},
+
+			addTargets = function( newTargets )
+			{
+				newTargets.each( function()
+				{
+					targets = targets.add( $( this ) );
+				});
+
+				newTargets.on( 'click.imageLightbox', function( e )
+				{
+					e.preventDefault();
+					if( inProgress ) return false;
+					inProgress = false;
+					if( options.onStart !== false ) options.onStart();
+					target = $( this );
+					loadImage();
+				});
+			};
+
+		$( window ).on( 'resize', setImage );
+
+		if( options.quitOnDocClick )
+		{
+			$( document ).on( hasTouch ? 'touchend' : 'click', function( e )
+			{
+				if( image.length && !$( e.target ).is( image ) ) quitLightbox();
+			});
+		}
+
+		if( options.enableKeyboard )
+		{
+			$( document ).on( 'keyup', function( e )
+			{
+				if( !image.length ) return true;
+				e.preventDefault();
+				if( e.keyCode == 27 ) quitLightbox();
+				if( e.keyCode == 37 || e.keyCode == 39 )
+				{
+					target = targets.eq( targets.index( target ) - ( e.keyCode == 37 ? 1 : -1 ) );
+					if( !target.length ) target = targets.eq( e.keyCode == 37 ? targets.length : 0 );
+					loadImage( e.keyCode == 37 ? 'left' : 'right' );
+				}
+			});
+		}
+
+		addTargets( $( this ) );
+
+		this.switchImageLightbox = function( index )
+		{
+			var tmpTarget = targets.eq( index );
+			if( tmpTarget.length )
+			{
+				var currentIndex = targets.index( target );
+				target = tmpTarget;
+				loadImage( index < currentIndex ? 'left' : 'right' );
+			}
+			return this;
+		};
+
+		this.addToImageLightbox = function( newTargets )
+		{
+			addTargets( newTargets );
+		};
+
+		this.quitImageLightbox = function()
+		{
+			quitLightbox();
+			return this;
+		};
+
+		return this;
+	};
+})( jQuery, window, document );
+  </script>
+  <script>
+var
+			// ACTIVITY INDICATOR
+
+			activityIndicatorOn = function()
+			{
+				$( '<div id="imagelightbox-loading"><div></div></div>' ).appendTo( 'body' );
+			},
+			activityIndicatorOff = function()
+			{
+				$( '#imagelightbox-loading' ).remove();
+			},
+
+
+			// OVERLAY
+
+			overlayOn = function()
+			{
+				$( '<div id="imagelightbox-overlay"></div>' ).appendTo( 'body' );
+			},
+			overlayOff = function()
+			{
+				$( '#imagelightbox-overlay' ).remove();
+			},
+
+
+			// CLOSE BUTTON
+
+			closeButtonOn = function( instance )
+			{
+				$( '<button type="button" id="imagelightbox-close" title="Close"></button>' ).appendTo( 'body' ).on( 'click touchend', function(){ $( this ).remove(); instance.quitImageLightbox(); return false; });
+			},
+			closeButtonOff = function()
+			{
+				$( '#imagelightbox-close' ).remove();
+			};
+
+            $( 'a[data-imagelightbox="a"]' ).imageLightbox(
+		{
+			onLoadStart:	function() { activityIndicatorOn(); },
+			onLoadEnd:		function() { activityIndicatorOff(); },
+			onEnd:	 		function() { activityIndicatorOff(); }
+		});
+
+
+</script>
+    <script src="particles.js"></script>
+    <script>
+        particlesJS.load('particles-js', 'particles.json', function () {
+            console.log('callback - particles.js config loaded');
+        });
+    </script>
+    <script type="text/template" id="template1">
+        <div class="card shadow">
+                <div class="flex">
+                    <div class="flex-4">
+                            <a href="{{path}}" data-imagelightbox="a">
+                                <img src="{{path}}" id="lol" alt="">
+                            </a>
+                    </div>
+                    <div class="flex-8">
+                        <h3 class="bold"> Logged at {{time}}</h3>
+                        <br>
+                        <p>
+                            {{data}}
+                        </p>
+                        <br>
+                        <p style="text-align: right;">
+                           - {{from}}
+                        </p>
+                    </div>
+                        
+                </div>
+            </div>
+    </script>
+
+    <script type="text/template" id="template2">
+        <div class="card shadow">
+                <div class="flex">
+                    <div class="flex-12">
+                        <h3 class="bold"> Logged at {{time}}</h3>
+                        <br>
+                        <p>
+                            {{data}}
+                        </p>
+                        <br>
+                        <p style="text-align: right;">
+                           - {{from}}
+                        </p>
+                    </div>
+                        
+                </div>
+            </div>
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-firestore.js"></script>
+
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.5.2/firebase-analytics.js"></script>
+    
+    <script>
+        // Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+modal.style.display = "block";
+
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = init();
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = init();
+    modal.style.display = "none";
+  }
+}
+
+        var temp2=$('#template2').html();
+        var temp1=$('#template1').html();
+        console.log(temp1);
+        console.log(temp2);
+
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyBtvYWVAcGIo6reOw0JBqMHAfGygl_HIhI",
+        authDomain: "three-eyed-raven-e67c5.firebaseapp.com",
+        databaseURL: "https://three-eyed-raven-e67c5.firebaseio.com",
+        projectId: "three-eyed-raven-e67c5",
+        storageBucket: "three-eyed-raven-e67c5.appspot.com",
+        messagingSenderId: "472326462664",
+        appId: "1:472326462664:web:f3018394f4445e750419fd",
+        measurementId: "G-9348L0XFEC"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+
+function init(){
+    firebase.firestore().collection("uploads").onSnapshot(function(querySnapshot) {
+        var payloads = [];
+        querySnapshot.forEach(function(doc) {
+            payloads.push(doc.data());
+        });
+        var str1=temp1;
+        var str2=temp2;
+        for(data of payloads){
+           if(data.type=="text"){
+            var time=""+new Date(data.time);
+           
+              str2=str2.replace(/{{from}}/g,data.from);
+               str2=str2.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
+               str2=str2.replace(/{{data}}/g,data.data);
+               document.querySelector("#aud").play();
+               $('#parent').append(str2);
+               str2=temp2;
+
+           }else{
+            var time=""+new Date(data.time);
+               str1=str1.replace(/{{path}}/g,data.data);
+               str1=str1.replace(/{{from}}/g,data.from);
+               str1=str1.replace(/{{time}}/g,time.slice(0,time.indexOf("GMT")));
+               document.querySelector("#aud").play();
+               $('#parent').append(str1);
+               str1=temp1;
+
+           }
+        }
+       
+    });
+
+}
+     
+
+
+    </script>
+
+</body>
+
+</html>
