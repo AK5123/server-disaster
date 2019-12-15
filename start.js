@@ -2,15 +2,16 @@ const express = require("express");
 const app = express();
 const bodyparser = require("body-parser");
 const multer = require('multer')
+var cors = require('cors')
 const fs = require('fs');
 const http = require('http');
 const socketIO = require('socket.io');
-var server = http.createServer(app);
-var io = socketIO(server);
+var server = app.listen(process.env.PORT || 3000);
+var io = require('socket.io').listen(server);
+
 const axios = require('axios');
 
 let request_cords = [];
-
 const {
   uploads
 } = require('./models/uploads')
@@ -25,8 +26,18 @@ const CONNECT_STR = "DefaultEndpointsProtocol=https;AccountName=storageaccountmo
 const blobServiceClient = BlobServiceClient.fromConnectionString(CONNECT_STR);
 const containerClient = blobServiceClient.getContainerClient("uploads");
 
-io.on('connection', function (socket) {
 
+app.use(cors())
+
+console.log("hey");
+
+
+app.get("/hello", (req, res) => {
+  res.send("hello");
+})
+
+io.on('connection', function (socket) {
+  socket.emit("check", "hai bo socket up");
 
   app.get("/getCords", function (req, res) {
     clusterHandler(socket);
@@ -36,19 +47,15 @@ io.on('connection', function (socket) {
 });
 
 function clusterHandler(socket) {
-  console.log(request_cords,2);
-  if(request_cords.length==1){
+  console.log(request_cords, 2);
+  if (request_cords.length == 1) {
     return;
   }
   axios.post('https://hop-me-py.azurewebsites.net/sendData', {
     lat_long: request_cords,
     n_teams: "2"
   }).then((res) => {
-    console.log(res.data);
-    if (socket != undefined) {
-      socket.emit("newCluster", res.data);
-      return;
-    }
+    console.log("hhfdfmc");
     io.sockets.emit("newCluster", res.data);
   }).catch((x) => console.log(x));
 }
@@ -66,7 +73,16 @@ app.use(bodyparser.json());
 var mongoClient = require("mongodb").MongoClient;
 
 mongoClient.connect("mongodb://mohan007:JvBukBtPUlOR50iYsdBGWPbrzZOMElblYPYUNtWytgHCEjO2C7HFaSThC5OiU1IVLyUB9S6cRxF3gPLQTOCPkg==@mohan007.documents.azure.com:10255/?ssl=true", function (err, db) {
-  console.log(db);
+  console.log("rofl");
+
+  var cursor = db.collection('cords').find()
+  cursor.toArray().then((data) => {
+    console.log("array fetched");
+    request_cords=data[0].request_cords;
+    console.log(request_cords);
+    console.log("Server started");
+    });
+
 
   var form = "<!DOCTYPE HTML><html><body>" +
     "<form method='post' action='/upload' enctype='multipart/form-data'>" +
@@ -75,6 +91,7 @@ mongoClient.connect("mongodb://mohan007:JvBukBtPUlOR50iYsdBGWPbrzZOMElblYPYUNtWy
     "</body></html>";
 
   app.use('/static', express.static("./public"));
+
 
 
   app.get('/', function (req, res) {
@@ -133,11 +150,11 @@ mongoClient.connect("mongodb://mohan007:JvBukBtPUlOR50iYsdBGWPbrzZOMElblYPYUNtWy
 
 
   app.post("/addMessage", function (req, res) {
-    console.log(db);
     console.log(req.body);
+    console.log("heyeheyehyehy")
     let data = req.body;
     let lat = req.body.lat;
-    let long = req.body.long;
+    let long = req.body.lng;
     let payload = [lat, long];
     for (content of request_cords) {
       if (content[0] == payload[0] && content[1] == payload[1]) {
@@ -181,14 +198,16 @@ mongoClient.connect("mongodb://mohan007:JvBukBtPUlOR50iYsdBGWPbrzZOMElblYPYUNtWy
 
 
   app.get("/getLog", function (req, res) {
+    console.log("hit")
     var cursor = db.collection('uploads').find()
     cursor.toArray().then((data) => {
-      res.json(data);
+      console.log(data);
+      res.json({
+        data: data
+      });
     })
   });
 
 
 
-  app.listen(process.env.PORT || 3000);
-  //db.close();
 });
