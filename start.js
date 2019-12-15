@@ -153,23 +153,6 @@ mongoClient.connect("mongodb://mohan007:JvBukBtPUlOR50iYsdBGWPbrzZOMElblYPYUNtWy
     console.log(req.body);
     console.log("heyeheyehyehy")
     let data = req.body;
-    let lat = req.body.lat;
-    let long = req.body.lng;
-    let payload = [lat, long];
-    for (content of request_cords) {
-      if (content[0] == payload[0] && content[1] == payload[1]) {
-        return;
-      }
-    }
-    request_cords.push(payload);
-    db.collection("cords").findAndModify({
-      _id: "56789"
-    }, [
-      ['_id', 'asc']
-    ], {
-      "request_cords": request_cords
-    });
-    clusterHandler();
     let msgid = data.msgid.replace(/\..+/g, "") || "unidentified";
     let from = data.msgid.slice(10).replace(/\..+/g, "") || "unknown";
     let mydata = data.data;
